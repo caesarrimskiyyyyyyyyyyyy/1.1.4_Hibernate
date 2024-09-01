@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public final class PropertiesUtil {
-    public static final Properties PROPERTIES = new Properties();
+    private static final Properties PROPERTIES = new Properties();
 
     static {
         loadProperties();
