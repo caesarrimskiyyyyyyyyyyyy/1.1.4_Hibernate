@@ -35,6 +35,12 @@ public final class Util {
         }
     }
 
+    public static void closeConnection(Connection connection) throws SQLException {
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
     private static Configuration getHibernateConfig() {
         Configuration configuration = new Configuration();
         configuration.setProperty(DIALECT_KEY, PropertiesUtil.getProperty(DIALECT_KEY));

@@ -3,15 +3,12 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
-    private final Connection connection = Util.getConnection();
+    private static final Connection connection = Util.getConnection();
 
     private static final String CREATE_USERS_TABLE = "CREATE TABLE user (id BIGINT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) , last_name VARCHAR(255) , age INT)";
     private static final String DROP_USERS_TABLE = "DROP TABLE IF EXISTS user";
@@ -25,25 +22,22 @@ public class UserDaoJDBCImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        exceptionRollback(CREATE_USERS_TABLE);
+        createAndDropTable(CREATE_USERS_TABLE);
     }
 
     @Override
     public void dropUsersTable() {
-        exceptionRollback(DROP_USERS_TABLE);
+        createAndDropTable(DROP_USERS_TABLE);
     }
 
-    private void exceptionRollback(String sql) {
+    private void createAndDropTable(String sql) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            connection.setAutoCommit(false);
-            preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException e1) {
-                throw new RuntimeException(e1);
+            int resultSet = preparedStatement.executeUpdate();
+            if (resultSet != 0) {
+                System.out.println("таблица создана / удалена");
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -107,6 +101,14 @@ public class UserDaoJDBCImpl implements UserDao {
     public void cleanUsersTable() {
         try (PreparedStatement preparedStatement = connection.prepareStatement(CLEAN_USERS_TABLE)) {
             preparedStatement.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void closeConnection() {
+        try {
+            Util.closeConnection(connection);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

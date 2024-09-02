@@ -5,6 +5,7 @@ import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
@@ -22,6 +23,8 @@ public class UserDaoHibernateImpl implements UserDao {
             session.beginTransaction();
             session.createSQLQuery(CREATE_USERS_TABLE).executeUpdate();
             session.getTransaction().commit();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -32,7 +35,7 @@ public class UserDaoHibernateImpl implements UserDao {
             session.createSQLQuery(DROP_USERS_TABLE).executeUpdate();
             session.getTransaction().commit();
         } catch (Exception e) {
-            sessionFactory.getCurrentSession().getTransaction().rollback();
+            throw new RuntimeException(e);
         }
     }
 
@@ -52,7 +55,9 @@ public class UserDaoHibernateImpl implements UserDao {
     public void removeUserById(long id) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
-            session.delete(session.get(User.class, id));
+            if (session.get(User.class, id) != null) {
+                session.delete(session.get(User.class, id));
+            }
             session.getTransaction().commit();
         } catch (Exception e) {
             sessionFactory.getCurrentSession().getTransaction().rollback();
@@ -67,7 +72,7 @@ public class UserDaoHibernateImpl implements UserDao {
             sessionFactory.getCurrentSession().getTransaction().rollback();
         }
 
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
